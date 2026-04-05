@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome | In Main Hall</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="welcome-container">
+        <h1>Welcome in Main Hall</h1>
+        <p>If you are not a player yet, please use New Player to register your biometrics.</p>
+        
+        <div class="button-group">
+            <a href="login.html" class="btn btn-player">Authorized Player</a>
+            <a href="sing_up.html" class="btn btn-new">New Player</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Initialize Supabase Connection
+        const supabaseUrl = 'https://ijksxcqbecobagkbvghm.supabase.co';
+        const supabaseKey = 'sb_publishable_Z2SYmoDOGNRe8zqAdjGymg_xHzXh1QA';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // This page currently just links to others, but the connection is 
+        // ready if you want to add a "Server Status" or "Player Count" later.
+    </script>
+</body>
+</html>

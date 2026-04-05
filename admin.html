@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Control Unit | Admin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="admin-container">
+        <header>
+            <h1>Master Control Unit</h1>
+            <p>Cloud Synchronization Active</p>
+        </header>
+        
+        <div class="admin-stats">
+            <div class="stat-card">
+                <h3>Pending Transmissions</h3>
+                <span id="count-pending">0</span>
+            </div>
+            <div class="stat-card">
+                <h3>Verified Entities</h3>
+                <span id="count-verified">0</span>
+            </div>
+        </div>
+
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Identifier</th>
+                    <th>Requested Class</th>
+                    <th>Status</th>
+                    <th>Command</th>
+                </tr>
+            </thead>
+            <tbody id="player-list">
+                </tbody>
+        </table>
+
+        <div class="button-group" style="margin-top: 40px; text-align: center;">
+            <a href="index.html" class="btn btn-player">Disconnect from System</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // 2. Initialize Supabase
+        const supabaseUrl = 'https://ijksxcqbecobagkbvghm.supabase.co';
+        const supabaseKey = 'sb_publishable_Z2SYmoDOGNRe8zqAdjGymg_xHzXh1QA';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let players = [];
+
+        /**
+         * Fetches all players from the Cloud Database
+         */
+        async function fetchPlayers() {
+            const { data, error } = await _supabase
+                .from('players')
+                .select('*')
+                .order('name', { ascending: true });
+
+            if (error) {
+                console.error("Fetch Error:", error.message);
+                return;
+            }
+
+            players = data || [];
+            renderTable();
+        }
+
+        /**
+         * Renders the table rows based on player status
+         */
+        function renderTable() {
+            const list = document.getElementById('player-list');
+            if (!list) return;
+
+            if (players.length === 0) {
+                list.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:40px;">No entities found in cloud database.</td></tr>`;
+                updateCounters();
+                return;
+            }
+
+            list.innerHTML = players.map(p => {
+                let actionButtons = "";
+
+                // We handle "Verified" or "Deceased" similarly for accessing the sheet
+                if (p.status === "Verified" || p.status === "DECEASED") {
+                    actionButtons = `<button class="btn-access" onclick="accessSheet(${p.id})">Access</button>`;
+                } else {
+                    // IF PENDING: Show Finalize (Access/Setup) and Purge
+                    actionButtons = `
+                        <button class="approve" onclick="accessSheet(${p.id})">Finalize</button>
+                        <button class="delete" onclick="purge(${p.id})">Purge</button>
+                    `;
+                }
+
+                const statusClass = p.status ? p.status.toLowerCase() : 'pending';
+
+                return `
+                    <tr>
+                        <td><strong>${p.name}</strong></td>
+                        <td>${p.requestClass || 'None'}</td>
+                        <td><span class="status ${statusClass}">${p.status}</span></td>
+                        <td>${actionButtons}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            updateCounters();
+        }
+
+        function accessSheet(id) {
+            window.location.href = `player-sheet.html?id=${id}`;
+        }
+
+        function updateCounters() {
+            const pending = players.filter(p => p.status === "Pending").length;
+            const verified = players.filter(p => p.status === "Verified").length;
+            
+            const pendingEl = document.getElementById('count-pending');
+            const verifiedEl = document.getElementById('count-verified');
+            
+            if(pendingEl) pendingEl.innerText = pending;
+            if(verifiedEl) verifiedEl.innerText = verified;
+        }
+
+        /**
+         * Deletes a player from Supabase
+         */
+        async function purge(id) {
+            if(confirm("CRITICAL: Purge this entity from the cloud forever?")) {
+                const { error } = await _supabase
+                    .from('players')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) {
+                    alert("Purge failed: " + error.message);
+                } else {
+                    fetchPlayers(); // Refresh list
+                }
+            }
+        }
+
+        // Initial launch
+        fetchPlayers();
+
+        // Optional: Real-time listener to refresh list if someone signs up while you're looking at the screen
+        _supabase
+            .channel('admin-refresh')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, () => {
+                fetchPlayers();
+            })
+            .subscribe();
+
+    </script>
+</body>
+</html>
