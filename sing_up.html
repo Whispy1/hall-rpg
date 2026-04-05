@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Player | Sign Up</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="welcome-container">
+        <h1 id="form-title">New Player Creation</h1>
+        <p id="form-subtitle">Fill up to access the system.</p>
+        
+        <form id="signup-form">
+            <div id="step-1" class="form-step">
+                <div class="input-group">
+                    <input type="text" id="display_name" placeholder="Display Name" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Create Password" required>
+                </div>
+                <div class="button-group" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-new" id="btn-step-1">Access</button>
+                    <a href="index.html" class="btn btn-player">Cancel</a>
+                </div>
+            </div>
+
+            <div id="step-2" class="form-step" style="display: none;">
+                <div class="input-group">
+                    <input type="text" id="question_1" placeholder="Write Your Class" required>
+                </div>
+                <div class="button-group" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-new" id="btn-step-2">Continue</button>
+                </div>
+            </div>
+
+            <div id="step-3" class="form-step" style="display: none;">
+                <div class="input-group">
+                    <input type="text" id="question_2" placeholder="Make One System Request" required>
+                </div>
+                <div class="button-group" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-new" id="btn-step-3">Continue</button>
+                </div>
+            </div>
+
+            <div id="step-4" class="form-step" style="display: none;">
+                <p>Remaining Points: <span id="points-left">5</span></p>
+                
+                <div class="stats-container">
+                    <div class="stat-row">
+                        <span>Strength</span>
+                        <div class="stat-controls">
+                            <button type="button" class="btn-stat" onclick="changeStat('str', -1)">-</button>
+                            <span id="str-val">8</span>
+                            <button type="button" class="btn-stat" onclick="changeStat('str', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <span>Dexterity</span>
+                        <div class="stat-controls">
+                            <button type="button" class="btn-stat" onclick="changeStat('dex', -1)">-</button>
+                            <span id="dex-val">8</span>
+                            <button type="button" class="btn-stat" onclick="changeStat('dex', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <span>Constitution</span>
+                        <div class="stat-controls">
+                            <button type="button" class="btn-stat" onclick="changeStat('con', -1)">-</button>
+                            <span id="con-val">8</span>
+                            <button type="button" class="btn-stat" onclick="changeStat('con', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <span>Intelligence</span>
+                        <div class="stat-controls">
+                            <button type="button" class="btn-stat" onclick="changeStat('int', -1)">-</button>
+                            <span id="int-val">8</span>
+                            <button type="button" class="btn-stat" onclick="changeStat('int', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <span>Wisdom</span>
+                        <div class="stat-controls">
+                            <button type="button" class="btn-stat" onclick="changeStat('wis', -1)">-</button>
+                            <span id="wis-val">8</span>
+                            <button type="button" class="btn-stat" onclick="changeStat('wis', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <span>Charisma</span>
+                        <div class="stat-controls">
+                            <button type="button" class="btn-stat" onclick="changeStat('cha', -1)">-</button>
+                            <span id="cha-val">8</span>
+                            <button type="button" class="btn-stat" onclick="changeStat('cha', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="stat-row">
+                        <span>Luck</span>
+                        <div class="stat-controls">
+                            <button type="button" class="btn-stat" onclick="changeStat('luk', -1)">-</button>
+                            <span id="luk-val">0</span>
+                            <button type="button" class="btn-stat" onclick="changeStat('luk', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group" style="margin-top: 20px;">
+                    <button type="submit" class="btn btn-new">Finalize Creation</button>
+                </div>
+            </div>
+        </form>
+
+        <div id="success-box" class="success-message" style="display: none;">
+            <h2 style="color: #4cc9f0;">Transmission Successful</h2>
+            <p>Biometric data uploaded. Access pending Overseer verification.</p>
+            <a href="index.html" class="btn btn-player">Return to Main Hall</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        const supabaseUrl = 'https://ijksxcqbecobagkbvghm.supabase.co';
+        const supabaseKey = 'sb_publishable_Z2SYmoDOGNRe8zqAdjGymg_xHzXh1QA';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
+
+    <script src="script.js"></script>
+</body>
+</html>
