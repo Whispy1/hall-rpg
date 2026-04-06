@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Master Sheet | Nexus Admin</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="mission-modal" class="notif-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="modal-card" style="background: #161b22; border: 2px solid #4361ee; padding: 25px; width: 90%; max-width: 400px;">
+        <h3 style="color: #4361ee; margin-top: 0; text-align: center;">NEW MISSION OBJECTIVE</h3>
+        <label style="color: #8b949e; font-size: 0.8rem;">Mission Name</label>
+        <input type="text" id="m-name" placeholder="e.g. The Silent Heist" style="width: 100%; margin-bottom: 15px;">
+        <label style="color: #8b949e; font-size: 0.8rem;">Description</label>
+        <textarea id="m-desc" placeholder="Details of the task..." style="height: 80px; width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit;"></textarea>
+        <label style="color: #8b949e; font-size: 0.8rem;">Reward / Punishment</label>
+        <input type="text" id="m-rp" placeholder="e.g. +200 Gold / -10 Reputation" style="width: 100%; margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-access" onclick="addMission()" style="flex: 1;">DEPLOY</button>
+            <button class="btn-player" onclick="closeMissionModal()" style="flex: 1;">CANCEL</button>
+        </div>
+    </div>
+</div>
+
+<div class="sheet-container">
+    <header class="sheet-header" style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 30px;">
+        <div class="header-left" style="flex: 1;">
+            <input type="text" id="p-name" style="background: transparent; border: none; font-size: 2.5rem; color: #4cc9f0; font-weight: bold; outline: none; width: 100%;">
+            <input type="text" id="p-class" placeholder="Assign Official Class" style="background: transparent; border: none; font-size: 1.2rem; color: #8b949e; outline: none; display: block; width: 100%;">
+        </div>
+
+        <div style="display: flex; gap: 40px; align-items: center; background: rgba(255,255,255,0.03); padding: 15px 25px; border-radius: 8px; border: 1px solid rgba(239, 71, 111, 0.2);">
+            <div style="text-align: right;">
+                <label style="display: block; font-size: 0.7rem; color: #8b949e; letter-spacing: 1px;">CUR / MAX HP</label>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                    <input type="number" id="adm-hp-cur" style="width: 60px; background: #000; border: 1px solid #333; color: #06d6a0; text-align: center; font-size: 1.2rem; font-weight: bold; padding: 5px;">
+                    <span style="color: #444;">/</span>
+                    <input type="number" id="adm-hp-max" style="width: 60px; background: #000; border: 1px solid #333; color: #ef476f; text-align: center; font-size: 1.2rem; font-weight: bold; padding: 5px;">
+                </div>
+            </div>
+            
+            <div style="text-align: center; border-left: 1px solid #333; padding-left: 30px;">
+                <label style="display: block; font-size: 0.7rem; color: #8b949e;">LEVEL</label>
+                <div id="p-level" style="font-size: 2.5rem; font-weight: bold; color: #4cc9f0; line-height: 1;">1</div>
+                <div style="margin-top: 8px; display: flex; gap: 5px;">
+                    <button class="btn-stat" onclick="modLevel(-1)" style="padding: 2px 8px;">-</button>
+                    <button class="btn-stat" onclick="modLevel(1)" style="padding: 2px 8px;">+</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-grid" style="display: grid; grid-template-columns: 200px 1fr; gap: 30px;">
+        <aside class="stat-column" id="stat-sidebar" style="display: flex; flex-direction: column; gap: 15px;"></aside>
+
+        <div class="content-area">
+            <section class="sheet-section" style="margin-bottom: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin:0;">Active Mission Log</h3>
+                    <button class="btn-access" onclick="openMissionModal()" style="font-size: 0.7rem; padding: 5px 12px;">+ NEW MISSION</button>
+                </div>
+                <div id="mission-list"></div>
+            </section>
+
+            <section class="sheet-section" style="margin-bottom: 30px;">
+                <h3>Skills & Abilities</h3>
+                <div id="skills-list"></div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="text" id="sk-name" placeholder="Skill" style="width: 30%;">
+                    <input type="text" id="sk-dmg" placeholder="Dmg" style="width: 15%;">
+                    <input type="text" id="sk-desc" placeholder="Effect" style="width: 55%;">
+                    <button class="btn-access" onclick="addSkill()" style="width: 40px; height: 38px;">+</button>
+                </div>
+            </section>
+
+            <section class="sheet-section" style="margin-bottom: 30px;">
+                <h3>Inventory & Loot</h3>
+                <div id="loot-list"></div>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <input type="text" id="new-item-name" placeholder="Item Name" style="width: 30%;">
+                    <input type="text" id="new-item-effect" placeholder="Effect / Description" style="width: 60%;">
+                    <button class="btn-access" onclick="addItem()" style="width: 40px; height: 38px;">+</button>
+                </div>
+            </section>
+
+            <div class="danger-zone" style="margin-top: 50px; padding: 20px; border: 1px solid #ef476f; background: rgba(239, 71, 111, 0.05); border-radius: 8px;">
+                <h3 style="color: #ef476f; margin-top: 0;">TERMINATION PROTOCOL</h3>
+                <button class="btn-access" onclick="declareDeath()" style="background: #ef476f; border: none; color: black; font-weight: bold; width: 100%; padding: 15px; cursor: pointer;">
+                    DECLARE PLAYER DEATH & PURGE RECORD
+                </button>
+            </div>
+
+            <div style="margin-top: 30px; display: flex; gap: 15px;">
+                <button class="btn-new" onclick="saveAll()" style="flex: 2; padding: 15px; font-weight: bold; cursor: pointer;">COMMIT CLOUD CHANGES</button>
+                <button class="btn-player" onclick="window.location.href='admin.html'" style="flex: 1; cursor: pointer;">EXIT</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const supabaseUrl = 'https://ijksxcqbecobagkbvghm.supabase.co';
+    const supabaseKey = 'sb_publishable_Z2SYmoDOGNRe8zqAdjGymg_xHzXh1QA';
+    const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const playerId = urlParams.get('id');
+    let p = null;
+
+    // Local State
+    let tStats = {};
+    let tSkills = [];
+    let tLoot = [];
+    let tMissions = [];
+
+    async function loadData() {
+        if (!playerId) { window.location.href = 'admin.html'; return; }
+        
+        const { data, error } = await _supabase.from('players').select('*').eq('id', playerId).single();
+        if (error || !data) { window.location.href = 'admin.html'; return; }
+        
+        p = data;
+        tStats = { ...p.stats };
+        tSkills = Array.isArray(p.skills) ? [...p.skills] : [];
+        tLoot = Array.isArray(p.inventory) ? [...p.inventory] : [];
+        tMissions = Array.isArray(p.missions) ? [...p.missions] : [];
+
+        document.getElementById('p-name').value = p.name;
+        document.getElementById('p-class').value = (p.finalClass === "---") ? "" : p.finalClass;
+        document.getElementById('p-level').innerText = p.level;
+        document.getElementById('adm-hp-cur').value = p.hp_cur ?? 100;
+        document.getElementById('adm-hp-max').value = p.hp_max ?? 100;
+        
+        renderAll();
+    }
+
+    function renderAll() {
+        renderStats();
+        renderSkills();
+        renderLoot();
+        renderMissions();
+    }
+
+    function renderStats() {
+        document.getElementById('stat-sidebar').innerHTML = Object.entries(tStats).map(([k,v]) => `
+            <div class="dnd-stat-box" style="padding:10px; background:rgba(255,255,255,0.05); text-align:center; margin-bottom:10px; border: 1px solid #333;">
+                <label style="font-size:0.7rem; color:#8b949e; display: block; margin-bottom: 5px;">${k.toUpperCase()}</label>
+                <div style="font-size:1.5rem; font-weight:bold; color: white;">${v}</div>
+                <div style="display:flex; justify-content:center; gap:10px; margin-top:5px;">
+                    <button class="btn-stat" onclick="modStat('${k}', -1)">-</button>
+                    <button class="btn-stat" onclick="modStat('${k}', 1)">+</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderMissions() {
+        document.getElementById('mission-list').innerHTML = tMissions.map((m, i) => `
+            <div style="background:rgba(255,255,255,0.03); padding:10px; margin-bottom:10px; border-left: 3px solid #4361ee;">
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                    <b style="color:#4cc9f0;">${m.name}</b>
+                    <span style="color:#ef476f; cursor:pointer; font-weight: bold;" onclick="remMission(${i})">×</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #ccc; margin: 5px 0;">${m.desc}</div>
+                <div style="font-size: 0.7rem; color: #ffd166;">Reward: ${m.rp}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderSkills() {
+        document.getElementById('skills-list').innerHTML = tSkills.map((s, i) => `
+            <div style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.03); padding:10px; margin-bottom:5px; border-left: 3px solid #4cc9f0;">
+                <span><b style="color:#4cc9f0;">${s.name}</b> (${s.dmg})</span>
+                <span style="color:#ef476f; cursor:pointer; font-weight: bold;" onclick="remSkill(${i})">×</span>
+            </div>
+        `).join('');
+    }
+
+    function renderLoot() {
+        document.getElementById('loot-list').innerHTML = tLoot.map((l, i) => `
+            <div style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.03); padding:10px; margin-bottom:5px; border-left: 3px solid #ffd166;">
+                <span><b style="color:#ffd166;">${l.name}</b> <small style="color:#8b949e; margin-left:10px;">${l.effect}</small></span>
+                <span style="color:#ef476f; cursor:pointer; font-weight:bold;" onclick="remLoot(${i})">×</span>
+            </div>
+        `).join('');
+    }
+
+    function modStat(k, a) { tStats[k] = Math.max(0, tStats[k] + a); renderStats(); }
+    function modLevel(a) { 
+        let l = parseInt(document.getElementById('p-level').innerText);
+        if (l + a >= 1) document.getElementById('p-level').innerText = l + a;
+    }
+    
+    function openMissionModal() { document.getElementById('mission-modal').style.display = 'flex'; }
+    function closeMissionModal() { document.getElementById('mission-modal').style.display = 'none'; }
+
+    function addMission() {
+        const name = document.getElementById('m-name').value;
+        if(name) {
+            tMissions.push({ name, desc: document.getElementById('m-desc').value, rp: document.getElementById('m-rp').value });
+            renderMissions(); closeMissionModal();
+            document.getElementById('m-name').value = ""; document.getElementById('m-desc').value = ""; document.getElementById('m-rp').value = "";
+        }
+    }
+
+    function addSkill() {
+        const n = document.getElementById('sk-name').value;
+        if(n) {
+            tSkills.push({ name: n, dmg: document.getElementById('sk-dmg').value, desc: document.getElementById('sk-desc').value });
+            renderSkills(); document.getElementById('sk-name').value=""; document.getElementById('sk-dmg').value=""; document.getElementById('sk-desc').value="";
+        }
+    }
+
+    function addItem() {
+        const nameVal = document.getElementById('new-item-name').value;
+        if(nameVal) { 
+            tLoot.push({ name: nameVal, effect: document.getElementById('new-item-effect').value || "Standard." }); 
+            renderLoot(); 
+            document.getElementById('new-item-name').value = ""; document.getElementById('new-item-effect').value = ""; 
+        }
+    }
+
+    function remMission(i) { tMissions.splice(i,1); renderMissions(); }
+    function remSkill(i) { tSkills.splice(i,1); renderSkills(); }
+    function remLoot(i) { tLoot.splice(i, 1); renderLoot(); }
+
+    async function saveAll() {
+        const newMax = parseInt(document.getElementById('adm-hp-max').value);
+        const newCur = parseInt(document.getElementById('adm-hp-cur').value);
+
+        const updates = {
+            name: document.getElementById('p-name').value,
+            finalClass: document.getElementById('p-class').value || "---",
+            level: parseInt(document.getElementById('p-level').innerText),
+            stats: tStats,
+            skills: tSkills,
+            inventory: tLoot, 
+            missions: tMissions,
+            hp_max: newMax,
+            hp_cur: newCur > newMax ? newMax : newCur,
+            status: p.status === "DECEASED" ? "DECEASED" : "Verified"
+        };
+
+        const { error } = await _supabase.from('players').update(updates).eq('id', playerId);
+        if (error) alert("Sync Failed: " + error.message);
+        else alert("Cloud Changes Committed. Player updated.");
+    }
+
+    async function declareDeath() {
+        if (!playerId) return;
+        const confirmMsg = "CRITICAL ACTION: This will permanently delete the player from the database and trigger their 'Signal Lost' death screen. Proceed?";
+        
+        if (confirm(confirmMsg)) {
+            // Send one last broadcast so they see the red notification before the delete
+            await _supabase.from('players').update({ 
+                status: "DECEASED",
+                last_notif: "CRITICAL: SYSTEM PURGE INITIATED. PHYSICAL FORM TERMINATED.",
+                notif_type: "red",
+                notif_time: Date.now()
+            }).eq('id', playerId);
+
+            // Small delay to let the update propagate before the hard delete
+            setTimeout(async () => {
+                const { error } = await _supabase.from('players').delete().eq('id', playerId);
+                if (!error) {
+                    alert("Entity wiped.");
+                    window.location.href = "admin.html";
+                } else {
+                    alert("Delete failed: " + error.message);
+                }
+            }, 500);
+        }
+    }
+
+    loadData();
+</script>
+</body>
+</html>
