@@ -8,18 +8,40 @@
 </head>
 <body>
 
+<div id="view-note-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px;">
+    <div style="background: #161b22; border: 2px solid #4cc9f0; padding: 25px; width: 100%; max-width: 500px; border-radius: 4px; box-shadow: 0 0 20px rgba(76, 201, 240, 0.2); box-sizing: border-box;">
+        <h3 id="view-note-title" style="color: #4cc9f0; margin-top: 0; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">LOG ENTRY</h3>
+        <div id="view-note-content" style="width: 100%; min-height: 200px; max-height: 450px; overflow-y: auto; background: #0d1117; border: 1px solid #333; color: #aaa; padding: 15px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; line-height: 1.6; margin-top: 15px; box-sizing: border-box;"></div>
+        <div style="margin-top: 20px; text-align: right;">
+            <button onclick="closeViewModal()" style="background: #4cc9f0; color: #0d1117; border: none; padding: 10px 25px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">CLOSE</button>
+        </div>
+    </div>
+</div>
+
 <div id="mission-modal" class="notif-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
-    <div class="modal-card" style="background: #161b22; border: 2px solid #4361ee; padding: 25px; width: 90%; max-width: 400px;">
-        <h3 style="color: #4361ee; margin-top: 0; text-align: center;">NEW MISSION OBJECTIVE</h3>
-        <label style="color: #8b949e; font-size: 0.8rem;">Mission Name</label>
+    <div class="modal-card" style="background: #161b22; border: 2px solid #4361ee; padding: 25px; width: 90%; max-width: 450px;">
+        <h3 style="color: #4361ee; margin-top: 0; text-align: center; letter-spacing: 2px;">NEW MISSION OBJECTIVE</h3>
+        
+        <label style="color: #8b949e; font-size: 0.7rem; font-weight: bold;">MISSION NAME</label>
         <input type="text" id="m-name" placeholder="e.g. The Silent Heist" style="width: 100%; margin-bottom: 15px;">
-        <label style="color: #8b949e; font-size: 0.8rem;">Description</label>
-        <textarea id="m-desc" placeholder="Details of the task..." style="height: 80px; width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit;"></textarea>
-        <label style="color: #8b949e; font-size: 0.8rem;">Reward / Punishment</label>
-        <input type="text" id="m-rp" placeholder="e.g. +200 Gold / -10 Reputation" style="width: 100%; margin-bottom: 20px;">
+        
+        <label style="color: #8b949e; font-size: 0.7rem; font-weight: bold;">DESCRIPTION</label>
+        <textarea id="m-desc" placeholder="Details of the task..." style="height: 80px; width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; margin-bottom: 15px; font-family: inherit; padding: 10px; box-sizing: border-box;"></textarea>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div>
+                <label style="color: #06d6a0; font-size: 0.7rem; font-weight: bold;">REWARD</label>
+                <input type="text" id="m-reward" placeholder="+200 Gold" style="width: 100%;">
+            </div>
+            <div>
+                <label style="color: #ef476f; font-size: 0.7rem; font-weight: bold;">PENALTY</label>
+                <input type="text" id="m-penalty" placeholder="-10 Reputation" style="width: 100%;">
+            </div>
+        </div>
+
         <div style="display: flex; gap: 10px;">
-            <button class="btn-access" onclick="addMission()" style="flex: 1;">DEPLOY</button>
-            <button class="btn-player" onclick="closeMissionModal()" style="flex: 1;">CANCEL</button>
+            <button class="btn-access" onclick="addMission()" style="flex: 1; font-weight: bold;">DEPLOY</button>
+            <button class="btn-player" onclick="closeMissionModal()" style="flex: 1; font-weight: bold;">CANCEL</button>
         </div>
     </div>
 </div>
@@ -85,6 +107,14 @@
                 </div>
             </section>
 
+            <section class="sheet-section" style="margin-top: 30px; border-color: #4cc9f0;">
+                <h3 style="color: #4cc9f0; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid rgba(76,201,240,0.2); padding-bottom: 10px;">
+                    Player Chronicles (Logs)
+                </h3>
+                <div id="admin-notes-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                </div>
+            </section>
+
             <div class="danger-zone" style="margin-top: 50px; padding: 20px; border: 1px solid #ef476f; background: rgba(239, 71, 111, 0.05); border-radius: 8px;">
                 <h3 style="color: #ef476f; margin-top: 0;">TERMINATION PROTOCOL</h3>
                 <button class="btn-access" onclick="declareDeath()" style="background: #ef476f; border: none; color: black; font-weight: bold; width: 100%; padding: 15px; cursor: pointer;">
@@ -110,7 +140,6 @@
     const playerId = urlParams.get('id');
     let p = null;
 
-    // Local State
     let tStats = {};
     let tSkills = [];
     let tLoot = [];
@@ -118,7 +147,6 @@
 
     async function loadData() {
         if (!playerId) { window.location.href = 'admin.html'; return; }
-        
         const { data, error } = await _supabase.from('players').select('*').eq('id', playerId).single();
         if (error || !data) { window.location.href = 'admin.html'; return; }
         
@@ -129,12 +157,13 @@
         tMissions = Array.isArray(p.missions) ? [...p.missions] : [];
 
         document.getElementById('p-name').value = p.name;
-        document.getElementById('p-class').value = (p.finalClass === "---") ? "" : p.finalClass;
+        document.getElementById('p-class').value = (p.finalClass === "---" || !p.finalClass) ? "" : p.finalClass;
         document.getElementById('p-level').innerText = p.level;
         document.getElementById('adm-hp-cur').value = p.hp_cur ?? 100;
         document.getElementById('adm-hp-max').value = p.hp_max ?? 100;
         
         renderAll();
+        setupRealtime();
     }
 
     function renderAll() {
@@ -142,6 +171,42 @@
         renderSkills();
         renderLoot();
         renderMissions();
+        renderAdminNotes();
+    }
+
+    function openViewModal(title, content) {
+        document.getElementById('view-note-title').innerText = title;
+        document.getElementById('view-note-content').innerText = content;
+        document.getElementById('view-note-modal').style.display = 'flex';
+    }
+
+    function closeViewModal() {
+        document.getElementById('view-note-modal').style.display = 'none';
+    }
+
+    function renderAdminNotes() {
+        const container = document.getElementById('admin-notes-list');
+        const notes = (p && p.notes && Array.isArray(p.notes)) ? p.notes : [];
+
+        if (notes.length === 0) {
+            container.innerHTML = '<p style="color: #444; grid-column: span 2;">No logs recorded.</p>';
+            return;
+        }
+
+        container.innerHTML = notes.map(n => {
+            const safeTitle = (n.title || 'Untitled').replace(/'/g, "\\'");
+            const safeContent = (n.content || '').replace(/'/g, "\\'").replace(/\n/g, "\\n");
+
+            return `
+            <div onclick="openViewModal('${safeTitle}', '${safeContent}')" 
+                  style="background: rgba(76,201,240,0.05); border: 1px solid #333; padding: 12px; border-radius: 4px; cursor: pointer; transition: 0.2s; border-left: 3px solid #4cc9f0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <b style="color: #4cc9f0; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%;">${n.title}</b>
+                    <small style="color: #444; font-size: 0.6rem;">${n.timestamp || ''}</small>
+                </div>
+            </div>
+            `;
+        }).join('');
     }
 
     function renderStats() {
@@ -157,15 +222,19 @@
         `).join('');
     }
 
+    // UPDATED RENDERER FOR NEW MISSION KEYS
     function renderMissions() {
         document.getElementById('mission-list').innerHTML = tMissions.map((m, i) => `
             <div style="background:rgba(255,255,255,0.03); padding:10px; margin-bottom:10px; border-left: 3px solid #4361ee;">
                 <div style="display: flex; justify-content: space-between; width: 100%;">
-                    <b style="color:#4cc9f0;">${m.name}</b>
+                    <b style="color:#4cc9f0;">${m.title || m.name}</b>
                     <span style="color:#ef476f; cursor:pointer; font-weight: bold;" onclick="remMission(${i})">×</span>
                 </div>
                 <div style="font-size: 0.8rem; color: #ccc; margin: 5px 0;">${m.desc}</div>
-                <div style="font-size: 0.7rem; color: #ffd166;">Reward: ${m.rp}</div>
+                <div style="display: flex; gap: 15px; font-size: 0.7rem;">
+                    <span style="color: #06d6a0;">Rew: ${m.reward || 'None'}</span>
+                    <span style="color: #ef476f;">Pen: ${m.penalty || 'None'}</span>
+                </div>
             </div>
         `).join('');
     }
@@ -197,12 +266,27 @@
     function openMissionModal() { document.getElementById('mission-modal').style.display = 'flex'; }
     function closeMissionModal() { document.getElementById('mission-modal').style.display = 'none'; }
 
+    // UPDATED ADD MISSION TO SUPPORT REWARD AND PENALTY
     function addMission() {
-        const name = document.getElementById('m-name').value;
-        if(name) {
-            tMissions.push({ name, desc: document.getElementById('m-desc').value, rp: document.getElementById('m-rp').value });
-            renderMissions(); closeMissionModal();
-            document.getElementById('m-name').value = ""; document.getElementById('m-desc').value = ""; document.getElementById('m-rp').value = "";
+        const title = document.getElementById('m-name').value;
+        const desc = document.getElementById('m-desc').value;
+        const reward = document.getElementById('m-reward').value;
+        const penalty = document.getElementById('m-penalty').value;
+
+        if(title) {
+            tMissions.push({ 
+                title: title, 
+                desc: desc, 
+                reward: reward || "REDACTED", 
+                penalty: penalty || "REDACTED" 
+            });
+            renderMissions(); 
+            closeMissionModal();
+            // Clear inputs
+            document.getElementById('m-name').value = ""; 
+            document.getElementById('m-desc').value = ""; 
+            document.getElementById('m-reward').value = "";
+            document.getElementById('m-penalty').value = "";
         }
     }
 
@@ -230,7 +314,6 @@
     async function saveAll() {
         const newMax = parseInt(document.getElementById('adm-hp-max').value);
         const newCur = parseInt(document.getElementById('adm-hp-cur').value);
-
         const updates = {
             name: document.getElementById('p-name').value,
             finalClass: document.getElementById('p-class').value || "---",
@@ -241,38 +324,32 @@
             missions: tMissions,
             hp_max: newMax,
             hp_cur: newCur > newMax ? newMax : newCur,
-            status: p.status === "DECEASED" ? "DECEASED" : "Verified"
+            status: (p && p.status === "DECEASED") ? "DECEASED" : "Verified"
         };
-
         const { error } = await _supabase.from('players').update(updates).eq('id', playerId);
         if (error) alert("Sync Failed: " + error.message);
-        else alert("Cloud Changes Committed. Player updated.");
+        else alert("Cloud Changes Committed.");
     }
 
     async function declareDeath() {
         if (!playerId) return;
-        const confirmMsg = "CRITICAL ACTION: This will permanently delete the player from the database and trigger their 'Signal Lost' death screen. Proceed?";
-        
-        if (confirm(confirmMsg)) {
-            // Send one last broadcast so they see the red notification before the delete
-            await _supabase.from('players').update({ 
-                status: "DECEASED",
-                last_notif: "CRITICAL: SYSTEM PURGE INITIATED. PHYSICAL FORM TERMINATED.",
-                notif_type: "red",
-                notif_time: Date.now()
-            }).eq('id', playerId);
-
-            // Small delay to let the update propagate before the hard delete
+        if (confirm("Proceed with System Purge?")) {
+            await _supabase.from('players').update({ status: "DECEASED", notif_time: Date.now() }).eq('id', playerId);
             setTimeout(async () => {
                 const { error } = await _supabase.from('players').delete().eq('id', playerId);
-                if (!error) {
-                    alert("Entity wiped.");
-                    window.location.href = "admin.html";
-                } else {
-                    alert("Delete failed: " + error.message);
-                }
+                if (!error) { alert("Entity wiped."); window.location.href = "admin.html"; }
             }, 500);
         }
+    }
+
+    function setupRealtime() {
+        _supabase.channel('admin-sync').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'players', filter: `id=eq.${playerId}` }, 
+        payload => { p = payload.new; renderAdminNotes(); }).subscribe();
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('view-note-modal');
+        if (event.target == modal) closeViewModal();
     }
 
     loadData();
